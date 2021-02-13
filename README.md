@@ -13,7 +13,7 @@ As their data engineer, I was tasked with building an ETL pipeline that extracts
 
 
 
-### Step 1 - The ETL process
+## Step 1 - The ETL process
 
 
 
