@@ -1,6 +1,7 @@
 [AWS]
 KEY=
 SECRET=
+REGION=
 
 [DWH] 
 DWH_CLUSTER_TYPE=multi-node
