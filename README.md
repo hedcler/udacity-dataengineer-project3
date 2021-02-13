@@ -17,6 +17,12 @@ We have a file called `sql_queries.py` with all SQL Queries used in the project,
 **Optionally** we can use the file `iac.py` tha will create AWS needed infrastructure, if you don't do it yet. This file will also update the configuration file with the cluster variables.
 
 
+## Step 1 - Configure the project
+You will need to copy the `dhw.cfg.example` to `dhw.cfg` and update the destination file with your AWS Credentials and configuration.
+
+**Optionally** you can set a cluster configuration on `IAC` section and run the file `iac.py` to create your cluster and update configuration file.
+
+
 ## Step 1 - The ETL process
 
 
