@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import boto3
+from botocore.exceptions import ClientError
 import configparser
 import pandas as pd
 from time import time, sleep
@@ -31,6 +32,9 @@ DWH_PORT               = config.get("IAC","DWH_PORT")
 
 DWH_IAM_ROLE_NAME      = config.get("IAC", "DWH_IAM_ROLE_NAME")
 
+JSON_PATH_BUCKET       = config.get("S3", "JSON_PATH_BUCKET")
+
+# Configure AWS Environment Variables
 os.environ['AWS_ACCESS_KEY_ID'] = KEY
 os.environ['AWS_SECRET_ACCESS_KEY'] = SECRET
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
@@ -40,10 +44,11 @@ print('1.0 - Configuration loaded')
 # 1.1 - Create AWS Clients
 print('---\n1.1 - Create AWS Clients')
 
-ec2 = boto3.resource('ec2', region_name='us-east-1', aws_access_key_id=KEY, aws_secret_access_key=SECRET)
-s3 = boto3.resource('s3', region_name='us-east-1', aws_access_key_id=KEY, aws_secret_access_key=SECRET)
-iam = boto3.client('iam', region_name='us-east-1', aws_access_key_id=KEY, aws_secret_access_key=SECRET)
-redshift = boto3.client('redshift', region_name='us-east-1', aws_access_key_id=KEY, aws_secret_access_key=SECRET)
+ec2 = boto3.resource('ec2')
+s3 = boto3.resource('s3')
+s3_client = boto3.client('s3')
+iam = boto3.client('iam')
+redshift = boto3.client('redshift')
 
 print('- AWS Clients created')
 
@@ -113,7 +118,7 @@ print('- Redshift Cluster created.')
 
 # 2.1 - Waiting Redshift Cluster to be available
 print('---\n2.1 - Waiting Redshift Cluster to be available')
-redshift = boto3.client('redshift', region_name='us-east-1', aws_access_key_id=KEY, aws_secret_access_key=SECRET)
+redshift = boto3.client('redshift')
 cluster = redshift.describe_clusters(ClusterIdentifier=DWH_CLUSTER_IDENTIFIER)['Clusters'][0]
 
 sec = 1
@@ -152,7 +157,42 @@ except Exception as e:
     print(e)
 
 # 4.0 - Updating config
-print('---\n4.0 - Updating config')
+print('---\n4.0 - Uploading json_paths ')
+def upload_file(file_name, bucket, object_name=None):
+    """Upload a file to an S3 bucket
+
+    :param file_name: File to upload
+    :param bucket: Bucket to upload to
+    :param object_name: S3 object name. If not specified then file_name is used
+    :return: True if file was uploaded, else False
+    """
+
+    # If S3 object_name was not specified, use file_name
+    if object_name is None:
+        object_name = file_name
+
+    # Upload the file
+    try:
+        response = s3_client.upload_file(file_name, bucket, object_name)
+    except ClientError as e:
+        print(e)
+        return False
+    return True
+
+s3_client.create_bucket(
+    ACL         = 'authenticated-read',
+    CreateBucketConfiguration={
+        'LocationConstraint': 'us-west-2'
+    },
+    Bucket      = JSON_PATH_BUCKET
+)
+
+upload_file('json_path/log_json_path.json', JSON_PATH_BUCKET, 'log_json_path.json')
+upload_file('json_path/song_json_path.json', JSON_PATH_BUCKET, 'song_json_path.json')
+print('- Json paths uploaded')
+
+# 5.0 - Updating config
+print('---\n5.0 - Updating config')
 
 config.set('CLUSTER', 'HOST', DWH_ENDPOINT)
 config.set('CLUSTER', 'DB_NAME', DWH_DB)
@@ -162,6 +202,10 @@ config.set('CLUSTER', 'DB_PORT', DWH_PORT)
 
 config.set('IAM_ROLE', 'ARN', DWH_ROLE_ARN)
 
+config.set('S3', 'LOG_JSONPATH', f"s3://{JSON_PATH_BUCKET}/log_json_path.json")
+config.set('S3', 'SONG_JSONPATH', f"s3://{JSON_PATH_BUCKET}/song_json_path.json")
+
 cfgfile = open(CONFIG_FILE,'w')
 config.write(cfgfile, space_around_delimiters=False)  # use flag in case case you need to avoid white space.
 cfgfile.close()
+print('- Config updated.')

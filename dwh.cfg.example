@@ -1,30 +1,33 @@
 [AWS]
-KEY=
-SECRET=
-REGION=
+key = 
+secret = 
+region = 
 
 [CLUSTER]
-HOST=
-DB_NAME=
-DB_USER=
-DB_PASSWORD=
-DB_PORT=
+host = 
+db_name = 
+db_user = 
+db_password = 
+db_port = 
 
 [IAM_ROLE]
-ARN=''
+arn = 
 
 [S3]
-LOG_DATA='s3://udacity-dend/log_data'
-LOG_JSONPATH='s3://udacity-dend/log_json_path.json'
-SONG_DATA='s3://udacity-dend/song_data'
+json_path_bucket = 
+log_data = 's3://udacity-dend/log_data/'
+log_jsonpath = 
+song_data = 's3://udacity-dend/song_data/'
+song_jsonpath = 
 
-[IAC] 
-DWH_CLUSTER_TYPE=multi-node
-DWH_NUM_NODES=4
-DWH_NODE_TYPE=dc2.large
-DWH_PORT=5439
-DWH_IAM_ROLE_NAME=
-DWH_CLUSTER_IDENTIFIER=
-DWH_DB=
-DWH_DB_USER=
-DWH_DB_PASSWORD=
+[IAC]
+dwh_cluster_type = multi-node
+dwh_num_nodes = 4
+dwh_node_type = dc2.large
+dwh_iam_role_name = 
+dwh_cluster_identifier = 
+dwh_db = 
+dwh_db_user = 
+dwh_db_password = 
+dwh_port = 5439
+
